@@ -339,9 +339,7 @@ cat("PrjOpen to=",newPrj," dir.exists(newPrj)=",dir.exists(newPrj),
     
   ## Full run/Just groups
   observe({
-    mkSimCnts(globals$fvsRun,justGrps=input$simContType=="Just groups") 
-    updateSelectInput(session=session, inputId="simCont",       
-         choices=globals$fvsRun$simcnts, selected=globals$fvsRun$selsim)
+    refreshSimCont(session, globals, justGrps=input$simContType=="Just groups")
   })
 
   ## saveRun

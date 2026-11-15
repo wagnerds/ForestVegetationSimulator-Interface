@@ -278,7 +278,7 @@ cat ("Setting initial selections, length(selChoices)=",length(selChoices),"\n")
       file.copy(frm,"SpatialData.RData",overwrite=TRUE)
     }
     globals$changeind <- 0
-    output$contChange <- renderUI("Run")    
+    markRunDirty(output, FALSE)
     dbGlb$dbIcon <- dbConnect(dbDrv,"FVS_Data.db")
     globals$exploring <- FALSE
 
@@ -425,7 +425,7 @@ cat ("exit now\n")
   observe({
     cat ("changeind=",globals$changeind,"\n")          
     if (globals$changeind == 0){
-      output$contChange <- renderUI("Run")
+      markRunDirty(output, FALSE)
       output$srtYr <-renderUI({
         HTML(paste0("<b>",input$startyr,"</b>"))
       })

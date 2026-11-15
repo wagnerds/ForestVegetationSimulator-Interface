@@ -156,11 +156,9 @@ cat ("kcpNew called, input$kcpNew=",input$kcpNew,"\n")
       append(globals$fvsRun$grps[[grp]]$cmps, newcmp) else
       append(globals$fvsRun$grps[[grp]]$cmps, newcmp, after=cmp)
     }
-    mkSimCnts(globals$fvsRun,sels=input$simCont[[1]],justGrps=input$simContType=="Just groups")
-    updateSelectInput(session=session, inputId="simCont", 
-                      choices=globals$fvsRun$simcnts, selected=globals$fvsRun$selsim)
+    refreshSimCont(session, globals, justGrps=input$simContType=="Just groups", sels=input$simCont[[1]])
     globals$changeind <- 1
-    output$contChange <- renderText(HTML("<b>*Run*</b>"))
+    markRunDirty(output)
     globals$schedBoxPkey <- character(0)
   })
 
@@ -192,9 +190,7 @@ is.null(input$kcpTitle),"\n")
         updateSelectInput(session=session, inputId="kcpSel",
            choices=names(globals$customCmps),
            selected=newTit)
-        mkSimCnts(globals$fvsRun,sels=input$simCont[[1]],justGrps=input$simContType=="Just groups")
-        updateSelectInput(session=session, inputId="simCont",
-           choices=globals$fvsRun$simcnts, selected=globals$fvsRun$selsim)
+        refreshSimCont(session, globals, justGrps=input$simContType=="Just groups", sels=input$simCont[[1]])
       })
     }
   })

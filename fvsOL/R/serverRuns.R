@@ -93,7 +93,7 @@ cat ("in new run, globals$fvsRun$defMgmtID=",globals$fvsRun$defMgmtID,"\n")
       updateSelectInput(session=session, inputId="runSel", 
                         choices=globals$FVS_Runs,selected=globals$fvsRun$uuid)
       globals$changeind <- 0
-      output$contChange <- renderUI("Run")
+      markRunDirty(output, FALSE)
     }
   })    
       
@@ -119,7 +119,7 @@ cat ("in new run, globals$fvsRun$defMgmtID=",globals$fvsRun$defMgmtID,"\n")
       updateSelectInput(session=session, inputId="runSel", 
                         choices=globals$FVS_Runs,selected=globals$fvsRun$uuid)
       globals$changeind <- 0
-      output$contChange <- renderUI("Run")
+      markRunDirty(output, FALSE)
     }
   })    
 
@@ -157,7 +157,7 @@ cat("setting uiRunPlot to NULL\n")
         output$uiRunPlot <- output$uiErrorScan <- renderUI(NULL)
         globals$currentQuickPlot = character(0)        
       }
-      output$titleBuild <-output$condBuild <- output$cmdBuild <- output$cmdBuildDesc <- output$fvsFuncRender <- renderUI (NULL)
+      clearBuildPanel(output, funcRender = TRUE)
       progress <- shiny::Progress$new(session,min=1,max=5)
       progress$set(message = "Loading selected run",value = 1)
       resetGlobals(globals,FALSE)
@@ -283,7 +283,7 @@ cat ("autoOut changed, input$autoSVS=",input$autoSVS,"\n")
       globals$fvsRun$autoOut <- out
       updateAutoOut(session, globals$fvsRun$autoOut)
       globals$changeind <- 1
-      output$contChange <- renderText(HTML("<b>*Run*</b>"))
+      markRunDirty(output)
     }
   })
 
@@ -334,9 +334,7 @@ cat ("input$inStdFindBut=",input$inStdFindBut,"\n")
     if (length(input$simCont) == 0) return()
 cat ("run element selection\n")
     if (all(input$simCont == globals$fvsRun$selsim)) return()
-    mkSimCnts(globals$fvsRun,sels=input$simCont[[1]],justGrps=isolate(input$simContType=="Just groups"))
-    updateSelectInput(session=session, inputId="simCont", 
-         choices=globals$fvsRun$simcnts, selected=globals$fvsRun$selsim)
+    refreshSimCont(session, globals, justGrps=isolate(input$simContType=="Just groups"), sels=input$simCont[[1]])
   })
   
   ## findStand (set run element to item if found)

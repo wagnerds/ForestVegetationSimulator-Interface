@@ -11,7 +11,7 @@ srvRunExec <- quote({
                            globals$fvsRun$startyr==input$startyr) return()
     globals$fvsRun$startyr  <- input$startyr
     globals$changeind <- 1
-    output$contChange <- renderText(HTML("<b>*Run*</b>"))
+    markRunDirty(output)
   })
   ## time--end year
   observe({
@@ -19,14 +19,14 @@ srvRunExec <- quote({
                                 globals$fvsRun$endyr==input$endyr) return()
     globals$fvsRun$endyr <- input$endyr
     globals$changeind <- 1
-    output$contChange <- renderText(HTML("<b>*Run*</b>"))
+    markRunDirty(output)
   })
   ## time--cycle length
   observe({
     if(!length(input$simCont) || !length(globals$fvsRun$cyclelen) || globals$fvsRun$cyclelen==input$cyclelen) return()
     globals$fvsRun$cyclelen <- input$cyclelen
     globals$changeind <- 1
-    output$contChange <- renderText(HTML("<b>*Run*</b>"))
+    markRunDirty(output)
   }) 
   ## time--cycle breaks
   observe({
@@ -34,7 +34,7 @@ srvRunExec <- quote({
        length(input$cycleat) && globals$fvsRun$cycleat==input$cycleat)) return()
     globals$fvsRun$cycleat  <- input$cycleat
     globals$changeind <- 1
-    output$contChange <- renderText(HTML("<b>*Run*</b>"))
+    markRunDirty(output)
   })
   
   
@@ -200,7 +200,7 @@ srvRunExec <- quote({
         }
         refreshTimmer <- reactiveTimer(500,session=session)
         progress$close()
-        output$contChange <- renderUI("Run")   
+        markRunDirty(output, FALSE)
         return()
       }         
       msg=writeKeyFile(globals,dbGlb$dbIcon)
@@ -393,7 +393,7 @@ srvRunExec <- quote({
       cat ("setting currentQuickPlot, input$runSel=",input$runSel,"\n")
       globals$currentQuickPlot = globals$fvsRun$uuid
       globals$changeind <- 0
-      output$contChange <- renderUI("Run")
+      markRunDirty(output, FALSE)
       updateTabsetPanel(session=session, inputId="leftPan",selected="Load")
   })
 

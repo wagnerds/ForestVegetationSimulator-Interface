@@ -67,6 +67,9 @@ Use these instead of repeating the same few lines in many observers:
 | `runJS(session, code)` | `session$sendCustomMessage(type="jsCode", list(code=code))` |
 | `setDisabled(session, ids, disabled=TRUE)` | `runJS(session, "$('#id').prop('disabled',true)")` for one or more ids |
 | `setVisible(session, ids, visible=TRUE)` | `runJS(session, "$('#id').show()")` / `.hide()` for one or more ids |
+| `markRunDirty(output, dirty=TRUE)` | `output$contChange <- renderText(HTML("<b>*Run*</b>"))` (dirty) or `renderUI("Run")` (saved) |
+| `clearBuildPanel(output, funcRender=FALSE)` | `output$titleBuild <- output$condBuild <- output$cmdBuild <- output$cmdBuildDesc <- renderUI(NULL)`; `funcRender=TRUE` also clears `fvsFuncRender` |
+| `refreshSimCont(session, globals, justGrps, sels=NULL)` | `mkSimCnts(globals$fvsRun, sels, justGrps)` followed by `updateSelectInput(session, "simCont", choices=..., selected=...)` |
 
 These are ordinary package functions, not section code, so they take `session` (and `output`, when needed) as arguments.
 

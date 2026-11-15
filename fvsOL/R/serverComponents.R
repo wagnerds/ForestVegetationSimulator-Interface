@@ -9,7 +9,7 @@ srvComponents <- quote({
   observe({
     if (input$editSel == 0) return() 
     isolate ({
-      output$titleBuild <-output$condBuild <- output$cmdBuild <- output$cmdBuildDesc <- output$fvsFuncRender <- renderUI (NULL)   
+      clearBuildPanel(output, funcRender = TRUE)
       globals$currentEditCmp <- globals$NULLfvsCmp
       if (length(input$simCont) == 0) return()
       toed = input$simCont[1]
@@ -212,9 +212,7 @@ cat ("Cut length(input$simCont) = ",length(input$simCont),"\n")
       {
         globals$foundStand=0L 
         updateReps(globals$fvsRun)
-        mkSimCnts(globals$fvsRun,justGrps=input$simContType=="Just groups") 
-        updateSelectInput(session=session, inputId="simCont", 
-          choices=globals$fvsRun$simcnts, selected=globals$fvsRun$selsim)                 
+        refreshSimCont(session, globals, justGrps=input$simContType=="Just groups")
         output$contCnts <- renderUI(HTML(paste0("Run contents: ",
           length(globals$fvsRun$stands)," stand(s), ",
           length(globals$fvsRun$grps)," group(s)")))
@@ -224,8 +222,8 @@ cat ("Cut length(input$simCont) = ",length(input$simCont),"\n")
               globals$pastelistShadow[[1]] else 0)         
       }
       globals$changeind <- 1
-      output$titleBuild <-output$condBuild <- output$cmdBuild <- output$cmdBuildDesc <- output$fvsFuncRender <- renderUI (NULL)   
-      output$contChange <- renderText(HTML("<b>*Run*</b>"))
+      clearBuildPanel(output, funcRender = TRUE)
+      markRunDirty(output)
     })
   })
 
@@ -286,16 +284,14 @@ cat("paste, class(topaste)=",class(topaste),"\n")
       idx = pasteComponent(globals,input$simCont[1],topaste)
       if (!is.null(idx))
       {
-        mkSimCnts(globals$fvsRun,justGrps=input$simContType=="Just groups")   
-        updateSelectInput(session=session, inputId="simCont", 
-           choices=globals$fvsRun$simcnts, selected=globals$fvsRun$selsim)
+        refreshSimCont(session, globals, justGrps=input$simContType=="Just groups")
         output$contCnts <- renderUI(HTML(paste0("Run contents: ",
           length(globals$fvsRun$stands)," stand(s), ",
           length(globals$fvsRun$grps)," group(s)")))
       }
       globals$foundStand=0L 
       globals$changeind <- 1
-      output$contChange <- renderText(HTML("<b>*Run*</b>"))
+      markRunDirty(output)
     })
   })
    
@@ -313,11 +309,8 @@ cat("paste, class(topaste)=",class(topaste),"\n")
       cmp$kwdName="freeEdit"
       if (substring(cmp$title,1,10) != "Freeform: ") cmp$title=paste("Freeform: ",cmp$title)
       cmp$reopn=character(0)
-      mkSimCnts(globals$fvsRun,sels=toed,justGrps=input$simContType=="Just groups")
-      updateSelectInput(session=session, inputId="simCont", 
-           choices=globals$fvsRun$simcnts, selected=globals$fvsRun$selsim)
-      output$titleBuild <-output$condBuild <- output$cmdBuild <- 
-        output$cmdBuildDesc <- output$fvsFuncRender <- renderUI (NULL)    
+      refreshSimCont(session, globals, justGrps=input$simContType=="Just groups", sels=toed)
+      clearBuildPanel(output, funcRender = TRUE)
     })                    
   })
 
@@ -327,8 +320,7 @@ cat ("compTabSet, input$compTabSet=",input$compTabSet,
      " input$simCont=",length(input$simCont),"\n")
     if(!length(globals$currentEditCmp$kwds) || input$compTabSet !="Management")
     {
-      output$titleBuild <-output$condBuild <- output$cmdBuild <- 
-        output$cmdBuildDesc <- output$fvsFuncRender <- renderUI (NULL)   
+      clearBuildPanel(output, funcRender = TRUE)
     } 
     if (length(globals$fvsRun$FVSpgm) == 0) return(NULL)
     if (! globals$fvsRun$FVSpgm %in% names(globals$activeFVS)) return(NULL)
@@ -509,7 +501,7 @@ cat ("insertStrinIntokcpEdit string=",string," start=",start," end=",end," len="
     if (length(globals$mgmtsel)==0) globals$mgmtsel<-mkMgmtCats(globals)
     updateSelectInput(session=session, inputId="addMgmtCmps", selected = 0, 
       choices=globals$mgmtsel[[as.numeric(input$addMgmtCats)]])
-    output$titleBuild <-output$condBuild <- output$cmdBuild <- output$cmdBuildDesc <- renderUI (NULL)
+    clearBuildPanel(output)
   })
   ## addModCats
   observe({
@@ -517,7 +509,7 @@ cat ("insertStrinIntokcpEdit string=",string," start=",start," end=",end," len="
     if (length(globals$mmodsel) == 0) globals$mmodsel <- mkModMCats(globals)
     updateSelectInput(session=session, inputId="addModCmps", selected = 0, 
           choices=globals$mmodsel[[as.numeric(input$addModCats)]])
-    output$titleBuild <-output$condBuild <- output$cmdBuild <- output$cmdBuildDesc <- renderUI (NULL)
+    clearBuildPanel(output)
   })
   ## addKeyExt
   observe({
@@ -529,7 +521,7 @@ cat ("insertStrinIntokcpEdit string=",string," start=",start," end=",end," len="
         updateSelectInput(session=session, inputId="addKeyWds", selected = 0, 
           choices=globals$kwdsel[[input$addKeyExt]])
       }
-    output$titleBuild <-output$condBuild <- output$cmdBuild <- output$cmdBuildDesc <- renderUI (NULL)
+    clearBuildPanel(output)
   })
   ## addMgmtCmps
   observe({
@@ -557,7 +549,7 @@ cat ("insertStrinIntokcpEdit string=",string," start=",start," end=",end," len="
   {
 cat ("renderComponent, inCode=",inCode,"\n")
     isolate ({
-      output$titleBuild <-output$condBuild <- output$cmdBuild <- output$cmdBuildDesc <- renderUI (NULL)
+      clearBuildPanel(output)
       globals$currentEditCmp <- globals$NULLfvsCmp
       globals$currentCndPkey <- character(0)
       switch (as.character(inCode),
@@ -878,7 +870,7 @@ cat ("cmdChgToFree processing component\n")
     updateSelectInput(session=session, inputId="addModCmps", selected = 0)     
     updateSelectInput(session=session, inputId="addKeyWds", selected = 0)     
     updateSelectInput(session=session, inputId="addEvCmps",selected = 0)
-    output$titleBuild <-output$condBuild <- output$cmdBuild <- output$cmdBuildDesc <- renderUI (NULL)
+    clearBuildPanel(output)
   }
   ## mkCondKeyWrd
   mkCondKeyWrd <- function (globals,prms,input)
@@ -995,9 +987,7 @@ cat ("in buildKeywords, oReopn=",oReopn," kwPname=",kwPname,"\n")
         idx = pasteComponent(globals,input$simCont[1],globals$currentEditCmp)
         if (!is.null(idx))
         { 
-          mkSimCnts(globals$fvsRun,justGrps=input$simContType=="Just groups")   
-          updateSelectInput(session=session, inputId="simCont", 
-                            choices=globals$fvsRun$simcnts, selected=globals$fvsRun$selsim)
+          refreshSimCont(session, globals, justGrps=input$simContType=="Just groups")
         }
         globals$currentEditCmp <- globals$NULLfvsCmp
         closeCmp()                      
@@ -1047,12 +1037,9 @@ cat ("in buildKeywords, oReopn=",oReopn," kwPname=",kwPname,"\n")
           globals$currentEditCmp$kwds = input$freeEdit
           globals$currentEditCmp$reopn = character(0)
           globals$currentEditCmp$title = input$cmdTitle
-          mkSimCnts(globals$fvsRun,sels=input$simCont[[1]],
-                    justGrps=input$simContType=="Just groups")
-          updateSelectInput(session=session, inputId="simCont", 
-                            choices=globals$fvsRun$simcnts, selected=globals$fvsRun$selsim)
+          refreshSimCont(session, globals, justGrps=input$simContType=="Just groups", sels=input$simCont[[1]])
           globals$changeind <- 1
-          output$contChange <- renderText(HTML("<b>*Run*</b>"))
+          markRunDirty(output)
           closeCmp()
           return()
         }  
@@ -1228,11 +1215,9 @@ cat ("in buildKeywords, oReopn=",oReopn," kwPname=",kwPname,"\n")
         globals$currentEditCmp$reopn=if (is.null(ans$reopn)) character(0) else ans$reopn
         globals$currentEditCmp=globals$NULLfvsCmp
       }      
-      mkSimCnts(globals$fvsRun,sels=input$simCont[[1]],justGrps=input$simContType=="Just groups")
-      updateSelectInput(session=session, inputId="simCont", 
-                        choices=globals$fvsRun$simcnts, selected=globals$fvsRun$selsim)
+      refreshSimCont(session, globals, justGrps=input$simContType=="Just groups", sels=input$simCont[[1]])
       globals$changeind <- 1
-      output$contChange <- renderText(HTML("<b>*Run*</b>"))
+      markRunDirty(output)
       closeCmp()
       globals$schedBoxPkey <- character(0)
     })
