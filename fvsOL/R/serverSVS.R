@@ -59,37 +59,28 @@ srvSVS <- quote({
     choices
   }
      
-  ## SVSRunList1     
-  observe({
-    if (length(input$SVSRunList1))
-    {
-cat ("Visualize input$SVSRunList1=",input$SVSRunList1,"\n")
-      choices = mkSVSchoices(input$SVSRunList1)
-      updateSelectInput(session=session, inputId="SVSImgList1", choices=choices, 
-                        selected = 0)
-      setVisible(session, c("SVSstaIm1","SVSdynIm1"), FALSE)
-      output$SVSqImg1Pers = renderUI(NULL)
-      output$SVSqImg1Top  = renderUI(NULL)
-      output$SVSqImg1Side = renderUI(NULL)
-      output$SVSImg1      = renderRglwidget(NULL)
-    }
-  })
-  
-   ## SVSRunList2 
-  observe({
-    if (length(input$SVSRunList2))
-    {
-cat ("Visualize input$SVSRunList2=",input$SVSRunList2,"\n")
-      choices = mkSVSchoices(input$SVSRunList2)
-      updateSelectInput(session=session, inputId="SVSImgList2", choices=choices, 
-                        selected = 0)
-      setVisible(session, c("SVSstaIm2","SVSdynIm2"), FALSE)
-      output$SVSqImg2Pers = renderUI(NULL)
-      output$SVSqImg2Top  = renderUI(NULL)
-      output$SVSqImg2Side = renderUI(NULL)
-      output$SVSImg2      = renderRglwidget(NULL)
-    }
-  })
+  ## SVSRunList1 / SVSRunList2: a run was chosen for SVS panel n (1 or 2).
+  ## Fill that panel's image list and clear its current images.
+  observeSVSRunList <- function(n)
+  {
+    id <- function(x) paste0(x, n)
+    observe({
+      if (length(input[[id("SVSRunList")]]))
+      {
+cat ("Visualize input$",id("SVSRunList"),"=",input[[id("SVSRunList")]],"\n")
+        choices = mkSVSchoices(input[[id("SVSRunList")]])
+        updateSelectInput(session=session, inputId=id("SVSImgList"), choices=choices,
+                          selected = 0)
+        setVisible(session, c(id("SVSstaIm"),id("SVSdynIm")), FALSE)
+        output[[paste0("SVSqImg",n,"Pers")]] = renderUI(NULL)
+        output[[paste0("SVSqImg",n,"Top")]]  = renderUI(NULL)
+        output[[paste0("SVSqImg",n,"Side")]] = renderUI(NULL)
+        output[[id("SVSImg")]]               = renderRglwidget(NULL)
+      }
+    })
+  }
+  observeSVSRunList(1)
+  observeSVSRunList(2)
 
   ## renderSVSImage
   renderSVSImage <- function (id,imgfile,subplots=TRUE,downTrees=TRUE,
@@ -345,39 +336,29 @@ cat("Residual length of svs=",length(svs),"\n")
     session$onFlushed(callBack, once = TRUE)
   }
 
-  ## SVSImgList1
-  observe({
-    if (length(input$SVSImgList1))
-    {
-cat ("Visualize SVSImgList1=",input$SVSImgList1," SVSdraw1=",input$SVSdraw1,"\n")
-      fn=input$SVSImgList1
-      if (!file.exists(fn)) return()
-      # actual images are loaded into these two img items in the browser when CustomMessage makeTopSideImages is sent
-      output$SVSqImg1Pers <- renderUI(HTML('<img id="SVSImg1Pers" alt="Perspective View" width="160" height="160"</img>'))
-      output$SVSqImg1Top  <- renderUI(HTML('<img id="SVSImg1Top"  alt="Top View"         width="160" height="160"</img>'))
-      output$SVSqImg1Side <- renderUI(HTML('<img id="SVSImg1Side" alt="Side View"        width="160" height="160"</img>'))
-      renderSVSImage('SVSImg1',fn,
-        subplots="subplots" %in% input$SVSdraw1,downTrees="downTrees" %in% input$SVSdraw1,
-        fireLine="fireLine" %in% input$SVSdraw1,rangePoles="rangePoles" %in% input$SVSdraw1,
-        plotColor=input$svsPlotColor1)
-    }
-  })
-  
-  ## SVSImgList2
-  observe({
-    if (length(input$SVSImgList2))
-    {
-cat ("Visualize SVSImgList2=",input$SVSImgList2," SVSdraw1=",input$SVSdraw2,"\n") 
-      fn=input$SVSImgList2
-      if (!file.exists(fn)) return()
-      # actual images are loaded into these two img items in the browser when CustomMessage makeTopSideImages is sent
-      output$SVSqImg2Pers <- renderUI(HTML('<img id="SVSImg2Pers" alt="Perspective View" width="160" height="160"</img>'))
-      output$SVSqImg2Top  <- renderUI(HTML('<img id="SVSImg2Top"  alt="Top View"         width="160" height="160"</img>'))
-      output$SVSqImg2Side <- renderUI(HTML('<img id="SVSImg2Side" alt="Side View"        width="160" height="160"</img>'))
-      renderSVSImage('SVSImg2',fn,
-        subplots="subplots" %in% input$SVSdraw2,downTrees="downTrees" %in% input$SVSdraw2,
-        fireLine="fireLine" %in% input$SVSdraw2,rangePoles="rangePoles" %in% input$SVSdraw2,
-        plotColor=input$svsPlotColor2)
-    }
-  })
+  ## SVSImgList1 / SVSImgList2: an image was chosen for SVS panel n (1 or 2).
+  ## Set up the three view placeholders and render the image.
+  observeSVSImgList <- function(n)
+  {
+    id <- function(x) paste0(x, n)
+    observe({
+      if (length(input[[id("SVSImgList")]]))
+      {
+        draw = input[[id("SVSdraw")]]
+cat ("Visualize ",id("SVSImgList"),"=",input[[id("SVSImgList")]]," ",id("SVSdraw"),"=",draw,"\n")
+        fn=input[[id("SVSImgList")]]
+        if (!file.exists(fn)) return()
+        # actual images are loaded into these img items in the browser when CustomMessage makeTopSideImages is sent
+        output[[paste0("SVSqImg",n,"Pers")]] <- renderUI(HTML(paste0('<img id="SVSImg',n,'Pers" alt="Perspective View" width="160" height="160"</img>')))
+        output[[paste0("SVSqImg",n,"Top")]]  <- renderUI(HTML(paste0('<img id="SVSImg',n,'Top"  alt="Top View"         width="160" height="160"</img>')))
+        output[[paste0("SVSqImg",n,"Side")]] <- renderUI(HTML(paste0('<img id="SVSImg',n,'Side" alt="Side View"        width="160" height="160"</img>')))
+        renderSVSImage(id("SVSImg"),fn,
+          subplots="subplots" %in% draw,downTrees="downTrees" %in% draw,
+          fireLine="fireLine" %in% draw,rangePoles="rangePoles" %in% draw,
+          plotColor=input[[id("svsPlotColor")]])
+      }
+    })
+  }
+  observeSVSImgList(1)
+  observeSVSImgList(2)
 })
