@@ -55,17 +55,7 @@ cat ("globals$fvsRun$uiCustomRunOps is empty\n")
     }
     updateSelectInput(session=session, inputId="PrjDelSelect",choices=selChoices,
                       selected=0)
-    backups <- lapply(dir(pattern = ".zip"), function(f){
-      if("projectId.txt" %in% utils::unzip(f, list = TRUE)$Name && "FVS_Data.db" %in% utils::unzip(f, list = TRUE)$Name) return(f)
-    })
-    backups <- unlist(backups[!sapply(backups, is.null)])
-    if (length(backups)) 
-    {
-      backups = sort(backups,decreasing=TRUE)
-      names(backups) = backups 
-    } else backups=list()
-    updateSelectInput(session=session, inputId="pickBackup",
-      choices = backups, selected=NULL)
+    updateBackupList(session, byContent = TRUE)
   }
 
    ## Projects hit

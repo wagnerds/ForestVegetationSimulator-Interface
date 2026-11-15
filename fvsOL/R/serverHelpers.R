@@ -39,3 +39,34 @@ refreshSimCont <- function(session, globals, justGrps = FALSE, sels = NULL)
   updateSelectInput(session = session, inputId = "simCont",
                     choices = globals$fvsRun$simcnts, selected = globals$fvsRun$selsim)
 }
+
+# Project backup zip files in the current directory, sorted newest name
+# first and named by file name (an empty list if there are none).
+# byContent=FALSE: files whose name contains "ProjectBackup".
+# byContent=TRUE:  any .zip that contains projectId.txt and FVS_Data.db.
+listProjectBackups <- function(byContent = FALSE)
+{
+  backups <- if (byContent)
+  {
+    b <- lapply(dir(pattern = ".zip"), function(f){
+      if("projectId.txt" %in% utils::unzip(f, list = TRUE)$Name && "FVS_Data.db" %in% utils::unzip(f, list = TRUE)$Name) return(f)
+    })
+    unlist(b[!sapply(b, is.null)])
+  } else dir(pattern="ProjectBackup")
+  if (length(backups))
+  {
+    backups = sort(backups,decreasing=TRUE)
+    names(backups) = backups
+  } else backups=list()
+  backups
+}
+
+# Refill the pickBackup select with listProjectBackups(byContent).
+# selected may be a function of the backup list.
+updateBackupList <- function(session, byContent = FALSE, selected = NULL)
+{
+  backups <- listProjectBackups(byContent)
+  if (is.function(selected)) selected <- selected(backups)
+  updateSelectInput(session=session, inputId="pickBackup",
+    choices = backups, selected=selected)
+}

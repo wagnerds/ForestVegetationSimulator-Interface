@@ -9,14 +9,7 @@ srvProjectTools <- quote({
   observe({    
     if (input$toolsPan == "Copy projects") 
     {
-      backups = dir (pattern="ProjectBackup")
-      if (length(backups)) 
-      {
-        backups = sort(backups,decreasing=TRUE)
-        names(backups) = backups 
-      } else backups=list()
-      updateSelectInput(session=session, inputId="pickBackup", 
-        choices = backups, selected=NULL)
+      updateBackupList(session)
     } 
   }) 
                                                                                               
@@ -121,14 +114,7 @@ cat ("delete all runs and outputs\n")
       if (fl %in% validBackups && file.exists(fl))
       {
         unlink(fl)
-        backups = dir (pattern="ProjectBackup")
-        if (length(backups)) 
-        {
-          backups = sort(backups,decreasing=TRUE)
-          names(backups) = backups 
-        } else backups=list()
-        updateSelectInput(session=session, inputId="pickBackup", 
-          choices = backups, selected=NULL)
+        updateBackupList(session)
       } else {
         showModal(shiny::modalDialog(title = "Delete Project Backup",
           paste0("Project backup ",fl," is not a valid project backup zip file"),
@@ -190,14 +176,7 @@ cat ("delete all runs and outputs\n")
       if (icon) dbGlb$dbIcon <- dbConnect(dbDriver("SQLite"),dbGlb$dbIcon@dbname)   
       Sys.sleep(.2)
       progress$close()
-      backups = dir (pattern="ProjectBackup")
-      if (length(backups)) 
-      {
-        backups = sort(backups,decreasing=TRUE)
-        names(backups) = backups 
-      } else backups=list()
-      updateSelectInput(session=session, inputId="pickBackup", 
-        choices = backups, selected=NULL)
+      updateBackupList(session)
     }
   })    
   
@@ -229,20 +208,8 @@ cat ("prjBackupUpload=",prjBackupUpload,"\n")
     fdir = dirname(input$upZipBackup$datapath)
     progress$set(message = "Copying project backup to current project directory",value = 4)
     file.copy(input$upZipBackup$datapath,prjBackupUpload)
-    backups <- lapply(dir(pattern = ".zip"), function(f){
-      if("projectId.txt" %in% utils::unzip(f, list = TRUE)$Name && "FVS_Data.db" %in% utils::unzip(f, list = TRUE)$Name) return(f)
-    })
-    backups <- unlist(backups[!sapply(backups, is.null)])
-
-    #backups = dir(pattern="ProjectBackup")
-    if (length(backups)) 
-    {
-      backups = sort(backups,decreasing=TRUE)
-      names(backups) = backups 
-      updateSelectInput(session=session, inputId="pickBackup", 
-          choices = backups, selected=backups[length(backups)])
-    } else updateSelectInput(session=session, inputId="pickBackup", 
-            choices = list(), selected=NULL)
+    updateBackupList(session, byContent = TRUE,
+      selected = function(b) if (length(b)) b[length(b)] else NULL)
     output$delPrjActionMsg  = renderText("<b>Project backup added to above list of backups to process</b>")
     progress$close()
   })
