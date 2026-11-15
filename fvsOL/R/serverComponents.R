@@ -644,92 +644,45 @@ cat ("funName=",funName,"\n")
     })
   }
 
- ## Thin from below window observer function
- observe({
-    if(is.null(input$tbf2)) return()
-    if(input$tbf2 == "1" || input$tbf2 == "2") {
-      setDisabled(session, c("tbf3","tbf4"), FALSE)
-      
-      if(input$tbf2 == "1" && input$tbf3 > 0 && input$tbf4 <= 0){
-        updateTextInput(session=session,inputId ="tbf4",
-                        value=round(sqrt(43560/as.numeric(input$tbf3)),digits=4))
+  ## Thin from below (tbf*) and thin from above (taf*) windows.
+  ## Both windows have the same controls, with ids <prefix>2 ... <prefix>7:
+  ##   2   residual density type (1 = trees per acre, 2 = spacing, 3-5 = others)
+  ##   3,4 trees per acre and spacing; whichever was not chosen is computed
+  ##       from the other (43560 square feet per acre)
+  ##   5-7 inputs for density types 3, 4 and 5
+  ## Only the inputs for the chosen type are enabled. Inputs are read inline,
+  ## in the same order as before, so the reactive dependencies are unchanged.
+  observeThinWindow <- function(p)
+  {
+    inp <- function(n) input[[paste0(p, n)]]
+    ids <- function(...) paste0(p, c(...))
+    observe({
+      if (length(inp(2)) == 0) return()
+      if (inp(2) == "1" || inp(2) == "2") {
+        setDisabled(session, ids(3,4), FALSE)
+        if (inp(2) == "1" && inp(3) > 0 && inp(4) <= 0)
+          updateTextInput(session=session, inputId=ids(4),
+                          value=round(sqrt(43560/as.numeric(inp(3))),digits=4))
+        if (inp(2) == "2" && inp(3) <= 0 && inp(4) > 0)
+          updateTextInput(session=session, inputId=ids(3),
+                          value=round(43560/(as.numeric(inp(4))^2),digits=2))
+        if (inp(2) == "1" && inp(3) > 0 && inp(4) > 0)
+          updateTextInput(session=session, inputId=ids(4),
+                          value=round(sqrt(43560/as.numeric(inp(3))),digits=4))
+        if (inp(2) == "2" && inp(3) > 0 && inp(4) > 0)
+          updateTextInput(session=session, inputId=ids(3),
+                          value=round(43560/(as.numeric(inp(4))^2),digits=2))
+      } else {
+        setDisabled(session, ids(3,4), TRUE)
       }
-      if(input$tbf2 == "2" && input$tbf3 <= 0 && input$tbf4 > 0){
-        updateTextInput(session=session,inputId ="tbf3",
-                        value=round(43560/(as.numeric(input$tbf4)^2),digits=2))
-      }
-      if(input$tbf2 == "1" && input$tbf3 > 0 && input$tbf4 >0){
-        updateTextInput(session=session,inputId ="tbf4",
-                        value=round(sqrt(43560/as.numeric(input$tbf3)),digits=4))
-      }
-      if(input$tbf2 == "2" && input$tbf3 > 0 && input$tbf4 >0){
-        updateTextInput(session=session,inputId ="tbf3",
-                        value=round(43560/(as.numeric(input$tbf4)^2),digits=2))
-      }
+      setDisabled(session, ids(5), inp(2) != "3")
+      setDisabled(session, ids(6), inp(2) != "4")
+      setDisabled(session, ids(7), inp(2) != "5")
+    })
+  }
+  observeThinWindow("tbf")
+  observeThinWindow("taf")
 
-    } else {
-      setDisabled(session, c("tbf3","tbf4"), TRUE)
-    }
-    if(input$tbf2 == "3") {
-      setDisabled(session, "tbf5", FALSE)
-    } else {
-      setDisabled(session, "tbf5", TRUE)
-    }
-    if(input$tbf2 == "4") {
-      setDisabled(session, "tbf6", FALSE)
-    } else {
-      setDisabled(session, "tbf6", TRUE)
-    }
-    if(input$tbf2 == "5") {
-      setDisabled(session, "tbf7", FALSE)
-    } else {
-      setDisabled(session, "tbf7", TRUE)
-    }
-  })
- 
- ## Thin from above window observer function
- observe({
-  if(length(input$taf2)==0) return()
-  if(input$taf2 == "1" || input$taf2 == "2") {
-    setDisabled(session, c("taf3","taf4"), FALSE)
-    
-    if(input$taf2 == "1" && input$taf3 > 0 && input$taf4 <= 0){
-      updateTextInput(session=session,inputId ="taf4",
-                      value=round(sqrt(43560/as.numeric(input$taf3)),digits=4))
-    }
-    if(input$taf2 == "2" && input$taf3 <= 0 && input$taf4 > 0){
-      updateTextInput(session=session,inputId ="taf3",
-                      value=round(43560/(as.numeric(input$taf4)^2),digits=2))
-    }
-    if(input$taf2 == "1" && input$taf3 > 0 && input$taf4 >0){
-      updateTextInput(session=session,inputId ="taf4",
-                      value=round(sqrt(43560/as.numeric(input$taf3)),digits=4))
-    }
-    if(input$taf2 == "2" && input$taf3 > 0 && input$taf4 >0){
-      updateTextInput(session=session,inputId ="taf3",
-                      value=round(43560/(as.numeric(input$taf4)^2),digits=2))
-    }
-    
-  } else {
-    setDisabled(session, c("taf3","taf4"), TRUE)
-  }
-  if(input$taf2 == "3") {
-    setDisabled(session, "taf5", FALSE)
-  } else {
-    setDisabled(session, "taf5", TRUE)
-  }
-  if(input$taf2 == "4") {
-    setDisabled(session, "taf6", FALSE)
-  } else {
-    setDisabled(session, "taf6", TRUE)
-  }
-  if(input$taf2 == "5") {
-    setDisabled(session, "taf7", FALSE)
-  } else {
-    setDisabled(session, "taf7", TRUE)
-  }
-})
-  
   ## schedule box toggled.
   observe({  
     if (length(input$schedbox) == 0) return()
