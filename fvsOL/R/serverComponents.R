@@ -104,104 +104,134 @@ cat ("Edit, cmp$kwdName=",cmp$kwdName,"toed=",toed,"\n")
               input$focusedElement %in% c("freeEdit","condDisp"))
       session$sendCustomMessage(type="getStartEnd", input$focusedElement)    
   })
-  ## freeSpecies
-  observe({
-    if (length(input$freeSpecies) && nchar(input$freeSpecies)) 
-      insertStringIntoFocusedTextarea(input,input$focusedElement,input$freeSpecies)
-  })
-  ## freeVars
-  observe({
-    if (length(input$freeVars) && nchar(input$freeVars)) 
-      insertStringIntoFocusedTextarea(input,input$focusedElement,input$freeVars)
-  })
-  ## freeOps
-  observe({
-    if (length(input$freeOps) && nchar(input$freeOps))
-      insertStringIntoFocusedTextarea(input,input$focusedElement,input$freeOps)
-  })  
-  ## freeFuncs
-  observe({
-    if (length(input$freeFuncs) && nchar(input$freeFuncs) && input$freeFuncs != " ") 
-    isolate({
-      pkeys = prms[[paste0("evmon.function.",input$freeFuncs)]]
-      if (is.null(pkeys)) insertStringIntoFocusedTextarea(input,
-          input$focusedElement,paste0(input$freeFuncs,"()")) else 
-      {
-        eltList <- mkeltList(pkeys,prms,globals,globals$fvsRun,funcflag=TRUE)
-        eltList <- append(eltList,list(
-          actionButton("fvsFuncInsert","Insert function"),
-          actionButton("fvsFuncCancel","Cancel function"),h6()))
-        output$fvsFuncRender <- renderUI(eltList)
-      }
-    })
-  })  
-  ## fvsFuncCancel
-  observe({  
-    if (length(input$fvsFuncCancel) && input$fvsFuncCancel) 
-    {
-      output$fvsFuncRender <- renderUI (NULL)
-      updateSelectInput(session=session, inputId="freeFuncs",selected=1)
-    }
-  })
-  ## fvsFuncInsert
-  observe({
-    if (length(input$fvsFuncInsert) && input$fvsFuncInsert)
-    isolate({
-      pkeys = prms[[paste0("evmon.function.",input$freeFuncs)]]
-      ansFrm = getPstring(pkeys,"answerForm",globals$activeVariants[1])
-      reopn = NULL
-      fn = 0
-      repeat
-      {
-        fn = fn+1
-        pkey = paste0("f",fn)
-        fps = getPstring(pkeys,pkey,globals$activeVariants[1])
-        if (is.null(fps)) break
-        pkey = paste0("func.f",fn)
-        instr = input[[pkey]]
-        reopn = c(reopn,as.character(if (is.null(instr)) " " else instr))
-        names(reopn)[fn] = pkey
-      }
-      string = mkKeyWrd(ansFrm,reopn,pkeys,globals$activeVariants[1])   
-      insertStringIntoFocusedTextarea(input,input$focusedElement,string)
-    })
-  }) 
+  ## Freeform palettes.
+  ## The Editor (freeEdit/condDisp text areas) and the keyword component
+  ## editor (kcpEdit) each have the same palette: species, variables,
+  ## operators and event-monitor functions (select inputs freeSpecies,
+  ## freeVars, freeOps, freeFuncs, with suffix "KCP" for the KCP editor).
+  ## Choosing an item inserts it at the cursor. A function with arguments
+  ## first shows a small form (fvsFuncRender) with Insert/Cancel buttons
+  ## (fvsFuncInsert/fvsFuncCancel, plus the suffix).
 
-  ## insertStringIntoFocusedTextarea
+  ## insertAtCursor: insert string into the text area at the current
+  ## selection (input$selectionStart/End, sent by the getStartEnd message).
+  insertAtCursor <- function(textarea, string)
+  {
+    if (length(input$selectionStart))
+    {
+      start = input$selectionStart
+      end   = input$selectionEnd
+    } else { start=0;end=0 }
+    len = nchar(input[[textarea]])
+cat ("insertAtCursor textarea=",textarea," string=",string," start=",start," end=",end," len=",len,"\n")
+    if (start == end && end == len) {         # prepend
+      updateTextInput(session, textarea, value = paste0(input[[textarea]],string))
+    } else if (start == 0 && end == start) {  # append
+      updateTextInput(session, textarea, value = paste0(string,input[[textarea]]))
+    } else if (end >= start) {                # insert/replace
+      updateTextInput(session, textarea, value =
+        paste0(substring(input[[textarea]],1,max(1,start)),string,
+               substring(input[[textarea]],min(end+1,len))))
+    }
+  }
+
+  ## resetFreeformPalette: set the palette's select inputs back to their
+  ## first item and remove the function form.
+  resetFreeformPalette <- function(sfx)
+  {
+    updateSelectInput(session=session, inputId=paste0("freeOps",sfx), selected=1)
+    updateSelectInput(session=session, inputId=paste0("freeVars",sfx),selected=1)
+    updateSelectInput(session=session, inputId=paste0("freeSpecies",sfx),selected=1)
+    updateSelectInput(session=session, inputId=paste0("freeFuncs",sfx),selected=1)
+    output$fvsFuncRender <- renderUI (NULL)
+  }
+
+  ## buildFuncKeyword: the text for event-monitor function fname, filled in
+  ## from the func.f1, func.f2, ... inputs of the function form.
+  buildFuncKeyword <- function(fname)
+  {
+    pkeys = prms[[paste0("evmon.function.",fname)]]
+    ansFrm = getPstring(pkeys,"answerForm",globals$activeVariants[1])
+    reopn = NULL
+    fn = 0
+    repeat
+    {
+      fn = fn+1
+      pkey = paste0("f",fn)
+      fps = getPstring(pkeys,pkey,globals$activeVariants[1])
+      if (is.null(fps)) break
+      pkey = paste0("func.f",fn)
+      instr = input[[pkey]]
+      reopn = c(reopn,as.character(if (is.null(instr)) " " else instr))
+      names(reopn)[fn] = pkey
+    }
+    mkKeyWrd(ansFrm,reopn,pkeys,globals$activeVariants[1])
+  }
+
+  ## observeFreeformPalette: create the palette observers for one editor.
+  ## sfx is the id suffix ("" or "KCP"), insert(string) inserts text, and
+  ## ready() is checked (isolated) before acting.
+  observeFreeformPalette <- function(sfx, insert, ready = function() TRUE)
+  {
+    id  <- function(x) paste0(x, sfx)
+    inp <- function(x) input[[id(x)]]
+    ## freeSpecies, freeVars, freeOps
+    for (sel in c("freeSpecies","freeVars","freeOps")) local({
+      sel <- sel
+      observe({
+        if (length(inp(sel)) && nchar(inp(sel))) isolate({
+          if (!ready()) return()
+          insert(inp(sel))
+        })
+      })
+    })
+    ## freeFuncs
+    observe({
+      if (length(inp("freeFuncs")) && nchar(inp("freeFuncs")) && inp("freeFuncs") != " ")
+      isolate({
+        if (!ready()) return()
+        pkeys = prms[[paste0("evmon.function.",inp("freeFuncs"))]]
+        if (is.null(pkeys)) insert(paste0(inp("freeFuncs"),"()")) else
+        {
+          eltList <- mkeltList(pkeys,prms,globals,input,output,funcflag=TRUE)
+          eltList <- append(eltList,list(
+            actionButton(id("fvsFuncInsert"),"Insert function"),
+            actionButton(id("fvsFuncCancel"),"Cancel function"),h6()))
+          output$fvsFuncRender <- renderUI(eltList)
+        }
+      })
+    })
+    ## fvsFuncCancel
+    observe({
+      if (length(inp("fvsFuncCancel")) && inp("fvsFuncCancel"))
+      {
+        output$fvsFuncRender <- renderUI (NULL)
+        updateSelectInput(session=session, inputId=id("freeFuncs"),selected=1)
+      }
+    })
+    ## fvsFuncInsert
+    observe({
+      if (length(inp("fvsFuncInsert")) && inp("fvsFuncInsert"))
+      isolate({
+        insert(buildFuncKeyword(inp("freeFuncs")))
+      })
+    })
+  }
+
+  ## insertStringIntoFocusedTextarea: Editor palette insert, into the focused
+  ## text area (freeEdit by default). Always resets the palette and refocuses.
   insertStringIntoFocusedTextarea <- function(input,textarea,string)
   {
     isolate({
       if (is.null(textarea)) textarea="freeEdit"
-      if (!is.null(string) && nchar(trim(string)) > 0) 
-      {
-        if (length(input$selectionStart)) 
-        {              
-          start = input$selectionStart
-          end   = input$selectionEnd
-        } else { start=0;end=0 }
-        len = nchar(input[[textarea]])
-cat ("insertStringIntoFocusedTextarea textarea=",textarea," string=",string," start=",start," end=",end," len=",len,"\n")
-        if (nchar(string) == 0) return()
-        if (start == end && end == len) {         # prepend 
-          updateTextInput(session, textarea, value = paste0(input[[textarea]],string))
-        } else if (start == 0 && end == start) {  # append
-          updateTextInput(session, textarea, value = paste0(string,input[[textarea]]))
-        } else if (end >= start) {                # insert/replace
-          str = input[[textarea]]
-          updateTextInput(session, textarea, value = 
-            paste0(substring(input[[textarea]],1,max(1,start)),string,
-                   substring(input[[textarea]],min(end+1,len))))
-        }
-      }
-      updateSelectInput(session=session, inputId="freeOps", selected=1)
-      updateSelectInput(session=session, inputId="freeVars",selected=1)
-      updateSelectInput(session=session, inputId="freeSpecies",selected=1)
-      updateSelectInput(session=session, inputId="freeFuncs",selected=1)
-      output$fvsFuncRender <- renderUI (NULL)
-      session$sendCustomMessage(type="refocus", textarea) 
+      if (!is.null(string) && nchar(trim(string)) > 0) insertAtCursor(textarea, string)
+      resetFreeformPalette("")
+      session$sendCustomMessage(type="refocus", textarea)
     })
   }
- 
+  observeFreeformPalette("", function(string)
+    insertStringIntoFocusedTextarea(input,input$focusedElement,string))
+
   ## Cut  
   observe({
     if (input$cutCmp == 0) return()
@@ -394,107 +424,20 @@ cat ("compTabSet, input$compTabSet=",input$compTabSet,
       session$sendCustomMessage(type="getStartEnd", "kcpEdit")
     }
   })
-  ## freeSpeciesKCP
-  observe({
-    if (length(input$freeSpeciesKCP) && nchar(input$freeSpeciesKCP)) isolate({
-      if (length(input$kcpEdit) == 0) return()
-      insertStrinIntokcpEdit(input,input$freeSpeciesKCP)
-    })
-  })
-  ## freeVarsKCP
-  observe({
-    if (length(input$freeVarsKCP) && nchar(input$freeVarsKCP)) isolate({
-      if (length(input$kcpEdit) == 0) return()
-      insertStrinIntokcpEdit(input,input$freeVarsKCP)
-    })
-  })
-  ## freeOpcKCP
-  observe({
-    if (length(input$freeOpsKCP) && nchar(input$freeOpsKCP)) 
-    isolate({
-      if (length(input$kcpEdit) == 0) return()
-      insertStrinIntokcpEdit(input,input$freeOpsKCP)
-    })
-  })  
-  ## freeFuncsKCP
-  observe({
-    if (length(input$freeFuncsKCP) && nchar(input$freeFuncsKCP) && input$freeFuncsKCP != " ") 
-    isolate({
-      if (length(input$kcpEdit) == 0) return()
-      pkeys = prms[[paste0("evmon.function.",input$freeFuncsKCP)]] 
-      if (is.null(pkeys)) insertStrinIntokcpEdit(input,
-          paste0(input$freeFuncsKCP,"()")) else 
-      {
-        eltList <- mkeltList(pkeys,prms,globals,input,output,funcflag=TRUE)
-        eltList <- append(eltList,list(
-          actionButton("fvsFuncInsertKCP","Insert function"),
-          actionButton("fvsFuncCancelKCP","Cancel function"),h6()))
-        output$fvsFuncRender <- renderUI(eltList)
-      }
-    })
-  }) 
-  ## fvsFuncCancelKCP
-  observe({  
-    if (length(input$fvsFuncCancelKCP) && input$fvsFuncCancelKCP) 
-    {
-      output$fvsFuncRender <- renderUI (NULL)
-      updateSelectInput(session=session, inputId="freeFuncsKCP",selected=1)
-    }
-  })
-  ## fvsFuncInsertKCP
-  observe({  
-    if (length(input$fvsFuncInsertKCP) && input$fvsFuncInsertKCP)
-    isolate({
-      pkeys = prms[[paste0("evmon.function.",input$freeFuncsKCP)]]
-      ansFrm = getPstring(pkeys,"answerForm",globals$activeVariants[1])
-      reopn = NULL
-      fn = 0
-      repeat
-      {
-        fn = fn+1
-        pkey = paste0("f",fn)
-        fps = getPstring(pkeys,pkey,globals$activeVariants[1])
-        if (is.null(fps)) break
-        pkey = paste0("func.f",fn)
-        instr = input[[pkey]]
-        reopn = c(reopn,as.character(if (is.null(instr)) " " else instr))
-        names(reopn)[fn] = pkey
-      }
-      string = mkKeyWrd(ansFrm,reopn,pkeys,globals$activeVariants[1])      
-      insertStrinIntokcpEdit(input,string)
-    })
-  }) 
-  ## insertStrinIntokcpEdit
+  ## Keyword component editor palette (see "Freeform palettes" above).
+  ## insertStrinIntokcpEdit: insert into kcpEdit; does nothing for an empty
+  ## string. The palette acts only when kcpEdit exists.
   insertStrinIntokcpEdit <- function(input,string)
   {
     if (is.null(string) || nchar(string) == 0 || string == " ") return()
     isolate({
-      if (length(input$selectionStart)) 
-      {
-        start = input$selectionStart
-        end   = input$selectionEnd
-      } else { start=0;end=0 } 
-      len   = nchar(input$kcpEdit)
-cat ("insertStrinIntokcpEdit string=",string," start=",start," end=",end," len=",len,"\n")
-      if (nchar(string) == 0) return()
-      if (start == end && end == len) {         # prepend 
-        updateTextInput(session, "kcpEdit", value = paste0(input$kcpEdit,string))
-      } else if (start == 0 && end == start) {  # append
-        updateTextInput(session, "kcpEdit", value = paste0(string,input$kcpEdit))
-      } else if (end >= start) {                # insert/replace
-        str = input$kcpEdit
-        updateTextInput(session, "kcpEdit", value = 
-          paste0(substring(input$kcpEdit,1,max(1,start)),string,
-                 substring(input$kcpEdit,min(end+1,len))))
-      }
-      updateSelectInput(session=session, inputId="freeOpsKCP", selected=1)
-      updateSelectInput(session=session, inputId="freeVarsKCP",selected=1)
-      updateSelectInput(session=session, inputId="freeSpeciesKCP",selected=1)
-      updateSelectInput(session=session, inputId="freeFuncsKCP",selected=1)
-      output$fvsFuncRender <- renderUI (NULL)
+      insertAtCursor("kcpEdit", string)
+      resetFreeformPalette("KCP")
     })
   }
-  
+  observeFreeformPalette("KCP", function(string) insertStrinIntokcpEdit(input,string),
+                         ready = function() length(input$kcpEdit) > 0)
+
   ## addMgmtCats
   observe({
     if (is.null(input$addMgmtCats)) return()
