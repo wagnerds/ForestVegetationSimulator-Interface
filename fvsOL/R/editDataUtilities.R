@@ -99,3 +99,36 @@ mkInserts <- function(inputTbl,tblName,tbsCTypes)
   inserts
 }
     
+
+# Create the lookup index for one table of a newly installed input database
+# (used by installNewDB). Stand-level tables are indexed on Stand_ID and
+# plot-level tables on StandPlot_ID; other tables get no index. The index is
+# dropped first if it exists. Errors are caught and ignored.
+#
+# NOTE: "fvs_climattr" never matches the climate table, which is named
+# FVS_ClimAttrs, so installing a database does not index FVS_ClimAttrs.
+# Kept as is; the climate upload builds that index itself.
+mkInputTableIndex <- function(dbcon, tb)
+{
+  ltb <- tolower(tb)
+  if (ltb == "fvs_climattr")
+  {
+    idx <- "StdScnIndex"
+    on  <- "FVS_ClimAttrs (Stand_ID, Scenario)"
+  } else {
+    key <- if (ltb %in% c("fvs_standinit_cond", "fvs_treeinit_cond",
+                          "fvs_standinit_plot")) "Stand_ID" else
+           if (ltb %in% c("fvs_plotinit_plot", "fvs_treeinit_plot",
+                          "fvs_plotinit")) "StandPlot_ID" else
+           if (length(grep(tb, c("FVS_StandInit", "FVS_TreeInit"),
+                           ignore.case = TRUE))) "Stand_ID" else
+           return(invisible(NULL))
+    idx <- paste0("idx", tb)
+    on  <- paste0(tb, " (", key, ")")
+  }
+  try(dbExecute(dbcon, paste0("drop index if exists ", idx)))
+  qry <- paste0("create index ", idx, " on ", on, ";")
+  cat ("index creation, qry=", qry, "\n")
+  try(dbExecute(dbcon, qry))
+  invisible(NULL)
+}
