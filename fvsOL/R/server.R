@@ -44,6 +44,7 @@ fvsOL <- function (prjDir=NULL,runUUID=NULL,fvsBin=NULL,shiny.trace=FALSE,
   addResourcePath("www",file.path(".","www"))
   addResourcePath("FVS_styles.css",
     system.file("extdata","www/FVS_styles.css", package="fvsOL"))
+  addResourcePath("fvschat", system.file("extdata","www", package="fvsOL"))
   
   # set shiny.trace=TRUE for reactive tracing 
   options(shiny.maxRequestSize=10000*1024^2,shiny.trace=shiny.trace,
@@ -167,6 +168,14 @@ customRunElements = list(
 FVSOnlineServer <- function(input, output, session) 
 {  
 cat ("FVSOnline/OnLocal interface server start\n")
+  # Local help assistant (R/chatbot.R): remember the last dialog shown so the
+  # assistant can refer to it. Only defined in the local configuration.
+  chatNotes <- new.env()
+  if (isLocal()) showModal <- function (ui, session = getDefaultReactiveDomain())
+  {
+    chatNoteModal(chatNotes, ui)
+    shiny::showModal(ui, session)
+  }
   if (!dir.exists ("www")) dir.create("www")
   addResourcePath("www",file.path(".","www"))
 
@@ -4511,6 +4520,7 @@ cat ("in buildKeywords, oReopn=",oReopn," kwPname=",kwPname,"\n")
       errScan = try(extnErrorScan(outf))
       if (inherits(errScan,"try-error")) errScan = 
         "Error scan failed likely due to invalid multibyte strings in output"
+      if (isLocal()) chatNoteErrScan(chatNotes, errScan, globals$fvsRun$title)
       output$uiErrorScan <- renderUI(list(
         h6(paste0("Run made with: ",globals$fvsRun$FVSpgm)," ",attr(errScan,"pgmRV")),
         h5("FVS error scan: "),
@@ -6287,6 +6297,14 @@ cat("delete project button.")
       output$uiHelpText <- renderUI(HTML(fvshelp))
     }
   })
+
+  ## Local help assistant (OnLocal only; no network access, see R/chatbot.R)
+  if (isLocal())
+  {
+    output$fvsChatSlot <- renderUI(chatUI("fvsChat"))
+    chatServer("fvsChat",
+      stateFn = function () chatAppState(input, globals, chatNotes))
+  }
 
   ## df2html
   df2html <- function(sdat=NULL)

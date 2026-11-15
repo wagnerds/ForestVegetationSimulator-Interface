@@ -25,7 +25,10 @@ document.addEventListener("copy", (event) => {
 '))),
   tags$style(type="text/css", ".progress-bar {color: transparent!important}"),
   singleton(tags$head(tags$script(src = "message-handler.js"),
-  tags$link(rel = "stylesheet", type= "text/css", href="FVS_styles.css")
+  tags$link(rel = "stylesheet", type= "text/css", href="FVS_styles.css"),
+  # local help assistant (R/chatbot.R); rendered by the server only when local
+  tags$link(rel = "stylesheet", type= "text/css", href="fvschat/chatbot.css"),
+  tags$script(src = "fvschat/chatbot.js")
           )),
   tags$style(HTML(paste0(
     ".nav>li>a {padding:3px;}",
@@ -957,5 +960,6 @@ document.addEventListener("copy", (event) => {
           div(style = 'padding-top:1.5em;overflow-y:scroll;height:550px;',uiOutput("uiHelpText"))))  
       ) #END help tab  
    ) #END of topPan
-   ) ) #END of second big row and End of Column
+   ) ), #END of second big row and End of Column
+  uiOutput("fvsChatSlot")  # docked help assistant, filled in by the server when local
   ) #end fixedPage

@@ -6,7 +6,7 @@ data/prms.RData: parms/*
 data/fvsOnlineHelpRender.RData: inst/extdata/mkhelp.R inst/extdata/fvsOnlineHelp.html inst/extdata/databaseDescription.xlsx
 	Rscript inst/extdata/mkhelp.R
 
-fvsOLmadeTag: makefile DESCRIPTION R/* inst/extdata/* inst/extdata/www/* data/*
+fvsOLmadeTag: makefile DESCRIPTION R/* inst/extdata/* inst/extdata/www/* inst/extdata/chatdocs/* data/*
 	cd .. && Rscript --default-packages=devtools -e "devtools::document(pkg='fvsOL')"
 	cd .. && Rscript --default-packages=devtools -e "devtools::build(pkg='fvsOL')"
 	cd .. && Rscript --default-packages=devtools -e "devtools::install(pkg='fvsOL')"

@@ -93,7 +93,18 @@ wiki about FVSOnline software</a>.</p>
 	create new projects, open other projects, deleted outputs or entire projects,
 	make and manage backup files. 
 	</p>
-	<li><p><b>Help: </b>Display this help. 
+	<li><p style="margin-bottom: 0in"><b>Help: </b>Display this help.
+	</p>
+	<li><p><b>Ask FVS (FVSOnlocal only): </b>The <b>Ask FVS</b> tab on the right edge
+	of the window opens a help assistant docked beside the page. It answers questions
+	from this help and the FVS guides installed with the software (Essential FVS,
+	the Keyword Reference Guide, the DBS, Fire and Fuels, Economics and Event Monitor
+	guides, and the variant overviews), and it can see which screen you are on, the
+	selected run, and the last FVS error scan. It runs entirely on your computer and
+	sends nothing over the network. Answers are documentation passages; if the optional
+	R package <i>localLLM</i> is installed and a GGUF language model file is placed
+	on your computer (set it with <code>options(fvsOL.chatModel="path/to/model.gguf")</code>
+	before starting fvsOL), the assistant writes conversational answers from those passages.
 	</p>
 </ul>
 <h4><a id="tmruns"></a>Simulate</h4>
