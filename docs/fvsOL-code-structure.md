@@ -67,6 +67,31 @@ Two reasons for using quoted expressions rather than functions:
 - Order matters only when top-level code in a section *calls* something defined in a later section while the session is starting. Observers and helpers run later, after every section has been evaluated.
 - Package load order doesn't matter: the files only define objects, and DESCRIPTION has no `Collate:` field. The exception is `serverGlobals.R`. It sources `runScripts.R` when the package is built, which needs objects defined earlier in the same file, so keep that block together.
 
+## User interface
+
+`FVSOnlineUI` is built in `ui.R`. That file holds the page header (title, logos, project information, custom JavaScript) and the top-level tabset. Each tab is built by a function in a `tab*.R` file:
+
+| File | Functions | What they build |
+|---|---|---|
+| `tabSimulate.R` | `tabSimulate`, `tabStands`, `tabTime`, `tabComponents`, `tabSelectOutputs`, `tabRun` | Simulate tab: run selection and contents, and its sub-tabs. `tabRun` is the tab whose title is the `contChange` output ("Run"/"\*Run\*") |
+| `tabViewOutputs.R` | `tabViewOutputs`, `tabGraphs` | View Outputs: Load/Explore panes, Tables and Graphs |
+| `tabVisualize.R` | `tabVisualize`, `tabMaps` | Visualize (SVS) and View On Maps |
+| `tabManageProjects.R` | `tabManageProjects`, `tabManageProject`, `tabImportInputData`, `tabImportRuns`, `tabDownloads` | Manage Projects and its sub-tabs |
+
+The Help tab is small, so it stays inline in `ui.R`.
+
+The server finds UI elements by their input/output IDs, not by which file defines them. Moving a widget between tab files therefore needs no server change.
+
+### Load order
+
+`FVSOnlineUI` is a value, not a function, and it is built when the package loads. R sources the files in `R/` in alphabetical order (C locale), so every function `ui.R` calls must be defined in a file that sorts **before** `ui.R`. That is why the tab files are named `tab*.R`; a name like `uiSimulate.R` would sort after `ui.R`. If a new UI file sorts too late, the package fails to load with a "could not find function" error.
+
+### Adding UI
+
+- Add widgets inside the relevant `tab*()` function.
+- For a large new sub-tab, add a function to the same file and call it where the `tabPanel(...)` would have gone.
+- For a new top-level tab, create a new `tab*.R` file and add its call to the `tabsetPanel(id = "topPan", ...)` in `ui.R`.
+
 ## Running from source
 
 1. Generate the git-ignored data files once: run `make data/prms.RData data/fvsOnlineHelpRender.RData` in `fvsOL/`. Without `prms`, opening any component window fails with "object 'prms' not found".
