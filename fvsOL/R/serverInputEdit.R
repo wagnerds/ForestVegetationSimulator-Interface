@@ -510,7 +510,21 @@ cat ("editSelDBvars, input$editSelDBvars=",input$editSelDBvars," mode=",input$mo
     }
   })
   
+  ## showEditRows: show rows top..bot of the table being edited, with the
+  ## Delete column and the selected variables, and update the row range text.
+  showEditRows <- function(top, bot)
+  {
+    dbGlb$rows <- c(top,bot)
+    output$tbl <- renderRHandsontable(rhandsontable(dbGlb$tbl[top:bot,
+      union(c("Delete"),isolate(input$editSelDBvars)),
+        drop=FALSE],readOnly=FALSE,useTypes=TRUE,contextMenu=FALSE))
+    output$rowRng <- renderText(paste0(top," to ",
+        bot," of ",nrow(dbGlb$tbl)))
+  }
+
   ## nextRows
+  ## Note: next shows disprows+2 rows (newBot-disprows-1 .. newBot) while
+  ## previous shows disprows rows; kept as is for now.
   observe({
     if (length(input$nextRows) && input$nextRows > 0) 
     {
@@ -518,12 +532,7 @@ cat ("editSelDBvars, input$editSelDBvars=",input$editSelDBvars," mode=",input$mo
       input$disprows
       newBot <- min(dbGlb$rows[2]+dbGlb$disprows,nrow(dbGlb$tbl))
       newTop <- max(newBot-dbGlb$disprows-1,1)
-      dbGlb$rows <- c(newTop,newBot)
-      output$tbl <- renderRHandsontable(rhandsontable(dbGlb$tbl[newTop:newBot,
-        union(c("Delete"),isolate(input$editSelDBvars)),
-          drop=FALSE],readOnly=FALSE,useTypes=TRUE,contextMenu=FALSE))
-      output$rowRng <- renderText(paste0(newTop," to ",
-          newBot," of ",nrow(dbGlb$tbl)))
+      showEditRows(newTop, newBot)
     }
   })
   
@@ -535,12 +544,7 @@ cat ("editSelDBvars, input$editSelDBvars=",input$editSelDBvars," mode=",input$mo
       input$disprows
       newTop <- max(dbGlb$rows[1]-dbGlb$disprows,1)
       newBot <- min(newTop+dbGlb$disprows-1,nrow(dbGlb$tbl))
-      dbGlb$rows <- c(newTop,newBot)
-      output$tbl <- renderRHandsontable(rhandsontable(dbGlb$tbl[newTop:newBot,
-        union(c("Delete"),isolate(input$editSelDBvars)),
-          drop=FALSE],readOnly=FALSE,useTypes=TRUE,contextMenu=FALSE))
-      output$rowRng <- renderText(paste0(newTop," to ",
-          newBot," of ",nrow(dbGlb$tbl)))
+      showEditRows(newTop, newBot)
     }
   })
 
