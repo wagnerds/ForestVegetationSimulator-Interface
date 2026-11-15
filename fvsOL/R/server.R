@@ -10,6 +10,7 @@
 # fvsOutData, and helpers defined in other sections are all in scope.
 #
 #   serverGlobals.R       reference classes, constants, run scripts (not a section)
+#   serverHelpers.R       small shared helper functions, e.g. setDisabled (not a section)
 #   serverOutputLoad.R    srvOutputLoad    View Outputs > Load
 #   serverExplore.R       srvExplore       View Outputs > Explore
 #   serverGraphs.R        srvGraphs        View Outputs > Graphs
@@ -378,8 +379,7 @@ cat ("onSessionEnded, globals$saveOnExit=",globals$saveOnExit,
       }, error = function(e) {
         cat("Error: ", e$message, "\n")
         # Disable the Change_wd button if an error occurs while trying to access the directory structure
-        session$sendCustomMessage(type="jsCode",
-                          list(code= "$('#Change_wd').prop('disabled',true)"))
+        setDisabled(session, "Change_wd", TRUE)
         output$VDINote <- renderUI({
         HTML(paste0("<b>An error occurred while trying to access directory structure.  This option has been disabled.</b>"))
        })

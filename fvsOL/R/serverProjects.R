@@ -212,10 +212,7 @@ cat("PrjOpen to=",newPrj," dir.exists(newPrj)=",dir.exists(newPrj),
         else if (input$toolsPan == "Import input data") 
         {
 
-          session$sendCustomMessage(type="jsCode",
-              list(code= "$('#installTrainDB').prop('disabled',false)"))
-          session$sendCustomMessage(type="jsCode",
-                list(code= "$('#installEmptyDB').prop('disabled',false)"))
+          setDisabled(session, c("installTrainDB","installEmptyDB"), FALSE)
 
         # Implement logic to control use of the training database and blank database installation based on existing runs
         FIA_Runs_Found = FALSE
@@ -257,8 +254,7 @@ cat("PrjOpen to=",newPrj," dir.exists(newPrj)=",dir.exists(newPrj),
                 Please delete any runs containing FIA data before installing the training database.  
                 This option has been disabled.</b>"))
             })
-            session$sendCustomMessage(type="jsCode",
-              list(code= "$('#installTrainDB').prop('disabled',true)"))
+            setDisabled(session, "installTrainDB", TRUE)
 
           } 
           if (Existing_Runs_Found) {
@@ -266,8 +262,7 @@ cat("PrjOpen to=",newPrj," dir.exists(newPrj)=",dir.exists(newPrj),
               HTML(paste0("<b>Runs containing data were found.  
                 Installation of the blank database has been disabled.</b>"))
             })
-              session$sendCustomMessage(type="jsCode",
-                list(code= "$('#installEmptyDB').prop('disabled',true)"))
+              setDisabled(session, "installEmptyDB", TRUE)
           }
         }
 

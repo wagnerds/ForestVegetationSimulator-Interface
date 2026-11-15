@@ -264,8 +264,7 @@ cat ("prjBackupUpload=",prjBackupUpload,"\n")
     {
       output$btnA <-renderUI(HTML("Project files only"))
       output$btnB <-renderUI(HTML("Project files and FVS software"))
-      session$sendCustomMessage(type="jsCode",
-                 list(code= "$('#restorePrjBackupDlgBtnC').show()"))
+      setVisible(session, "restorePrjBackupDlgBtnC", TRUE)
       session$sendCustomMessage(type = "dialogContentUpdate",
         message = list(id = "restorePrjBackupDlg",
           message = paste0("WARNING: restoring this project backup will overwrite",
@@ -278,8 +277,7 @@ cat ("prjBackupUpload=",prjBackupUpload,"\n")
     } else {
       output$btnA <- renderUI(HTML("Yes"))
       output$btnB <-renderUI(HTML("No"))
-      session$sendCustomMessage(type="jsCode",
-                          list(code= "$('#restorePrjBackupDlgBtnC').hide()"))
+      setVisible(session, "restorePrjBackupDlgBtnC", FALSE)
       globals$prjFilesOnly = TRUE
       session$sendCustomMessage(type = "dialogContentUpdate",
         message = list(id = "restorePrjBackupDlg",

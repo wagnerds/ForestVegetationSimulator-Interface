@@ -656,10 +656,7 @@ cat ("funName=",funName,"\n")
  observe({
     if(is.null(input$tbf2)) return()
     if(input$tbf2 == "1" || input$tbf2 == "2") {
-      session$sendCustomMessage(type="jsCode",
-                                list(code= "$('#tbf3').prop('disabled',false)"))
-      session$sendCustomMessage(type="jsCode",
-                                list(code= "$('#tbf4').prop('disabled',false)"))
+      setDisabled(session, c("tbf3","tbf4"), FALSE)
       
       if(input$tbf2 == "1" && input$tbf3 > 0 && input$tbf4 <= 0){
         updateTextInput(session=session,inputId ="tbf4",
@@ -679,31 +676,22 @@ cat ("funName=",funName,"\n")
       }
 
     } else {
-      session$sendCustomMessage(type="jsCode",
-                                list(code= "$('#tbf3').prop('disabled',true)"))
-      session$sendCustomMessage(type="jsCode",
-                                list(code= "$('#tbf4').prop('disabled',true)"))
+      setDisabled(session, c("tbf3","tbf4"), TRUE)
     }
     if(input$tbf2 == "3") {
-      session$sendCustomMessage(type="jsCode",
-                                list(code= "$('#tbf5').prop('disabled',false)"))
+      setDisabled(session, "tbf5", FALSE)
     } else {
-      session$sendCustomMessage(type="jsCode",
-                                list(code= "$('#tbf5').prop('disabled',true)"))
+      setDisabled(session, "tbf5", TRUE)
     }
     if(input$tbf2 == "4") {
-      session$sendCustomMessage(type="jsCode",
-                                list(code= "$('#tbf6').prop('disabled',false)"))
+      setDisabled(session, "tbf6", FALSE)
     } else {
-      session$sendCustomMessage(type="jsCode",
-                                list(code= "$('#tbf6').prop('disabled',true)"))
+      setDisabled(session, "tbf6", TRUE)
     }
     if(input$tbf2 == "5") {
-      session$sendCustomMessage(type="jsCode",
-                                list(code= "$('#tbf7').prop('disabled',false)"))
+      setDisabled(session, "tbf7", FALSE)
     } else {
-      session$sendCustomMessage(type="jsCode",
-                                list(code= "$('#tbf7').prop('disabled',true)"))
+      setDisabled(session, "tbf7", TRUE)
     }
   })
  
@@ -711,10 +699,7 @@ cat ("funName=",funName,"\n")
  observe({
   if(length(input$taf2)==0) return()
   if(input$taf2 == "1" || input$taf2 == "2") {
-    session$sendCustomMessage(type="jsCode",
-                              list(code= "$('#taf3').prop('disabled',false)"))
-    session$sendCustomMessage(type="jsCode",
-                              list(code= "$('#taf4').prop('disabled',false)"))
+    setDisabled(session, c("taf3","taf4"), FALSE)
     
     if(input$taf2 == "1" && input$taf3 > 0 && input$taf4 <= 0){
       updateTextInput(session=session,inputId ="taf4",
@@ -734,31 +719,22 @@ cat ("funName=",funName,"\n")
     }
     
   } else {
-    session$sendCustomMessage(type="jsCode",
-                              list(code= "$('#taf3').prop('disabled',true)"))
-    session$sendCustomMessage(type="jsCode",
-                              list(code= "$('#taf4').prop('disabled',true)"))
+    setDisabled(session, c("taf3","taf4"), TRUE)
   }
   if(input$taf2 == "3") {
-    session$sendCustomMessage(type="jsCode",
-                              list(code= "$('#taf5').prop('disabled',false)"))
+    setDisabled(session, "taf5", FALSE)
   } else {
-    session$sendCustomMessage(type="jsCode",
-                              list(code= "$('#taf5').prop('disabled',true)"))
+    setDisabled(session, "taf5", TRUE)
   }
   if(input$taf2 == "4") {
-    session$sendCustomMessage(type="jsCode",
-                              list(code= "$('#taf6').prop('disabled',false)"))
+    setDisabled(session, "taf6", FALSE)
   } else {
-    session$sendCustomMessage(type="jsCode",
-                              list(code= "$('#taf6').prop('disabled',true)"))
+    setDisabled(session, "taf6", TRUE)
   }
   if(input$taf2 == "5") {
-    session$sendCustomMessage(type="jsCode",
-                              list(code= "$('#taf7').prop('disabled',false)"))
+    setDisabled(session, "taf7", FALSE)
   } else {
-    session$sendCustomMessage(type="jsCode",
-                              list(code= "$('#taf7').prop('disabled',true)"))
+    setDisabled(session, "taf7", TRUE)
   }
 })
   

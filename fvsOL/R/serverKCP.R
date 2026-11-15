@@ -278,14 +278,12 @@ cat ("Visualize hit\n")
         selected=0) 
       updateSelectInput(session=session, inputId="SVSImgList2", choices=list(),
         selected=0)
-      session$sendCustomMessage(type="jsCode",
-        list(code= "$('#SVSstaIm1').hide();$('#SVSdynIm1').hide();"))
+      setVisible(session, c("SVSstaIm1","SVSdynIm1"), FALSE)
       output$SVSqImg1Pers = renderUI(NULL)
       output$SVSqImg1Top  = renderUI(NULL)
       output$SVSqImg1Side = renderUI(NULL)
       output$SVSImg1      = renderRglwidget(NULL)
-      session$sendCustomMessage(type="jsCode",
-        list(code= "$('#SVSstaIm2').hide();$('#SVSdynIm2').hide();"))
+      setVisible(session, c("SVSstaIm2","SVSdynIm2"), FALSE)
       output$SVSqImg2Pers = renderUI(NULL)
       output$SVSqImg2Top  = renderUI(NULL)
       output$SVSqImg2Side = renderUI(NULL)

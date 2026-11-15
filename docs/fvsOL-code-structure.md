@@ -10,6 +10,7 @@ This is a guide for developers working on the fvsOL Shiny interface (`fvsOL/R`).
 |---|---|---|
 | `server.R` | – | `fvsOL()` entry point; `FVSOnlineServer` start-up: logging, globals, project databases, lock file, session end |
 | `serverGlobals.R` | – | Reference classes (`mkfvsRun`, `mkGlobals`, …), constants (`cbbPalette`, `zipList`, …), run scripts |
+| `serverHelpers.R` | – | Small shared helpers that take `session`/`output` as arguments (see below) |
 | `serverOutputLoad.R` | `srvOutputLoad` | View Outputs > Load: run selection, composite output tables, stand/stock tables |
 | `serverExplore.R` | `srvExplore` | View Outputs > Explore: filtering and the output table |
 | `serverGraphs.R` | `srvGraphs` | View Outputs > Graphs: graph settings, facets, plot rendering |
@@ -56,6 +57,18 @@ Two reasons for using quoted expressions rather than functions:
 
 1. **Behavior.** The split is a pure move with no change in behavior. Turning sections into functions would mean passing state around explicitly and finding every cross-section helper.
 2. **R CMD check.** Its code analysis looks inside functions but not quoted expressions. Functions would produce hundreds of "no visible binding" notes. The cost is that check no longer reports undefined names inside the section code. Test changes to section code in the running app.
+
+### Shared helpers (`serverHelpers.R`)
+
+Use these instead of repeating the same few lines in many observers:
+
+| Helper | Use instead of |
+|---|---|
+| `runJS(session, code)` | `session$sendCustomMessage(type="jsCode", list(code=code))` |
+| `setDisabled(session, ids, disabled=TRUE)` | `runJS(session, "$('#id').prop('disabled',true)")` for one or more ids |
+| `setVisible(session, ids, visible=TRUE)` | `runJS(session, "$('#id').show()")` / `.hide()` for one or more ids |
+
+These are ordinary package functions, not section code, so they take `session` (and `output`, when needed) as arguments.
 
 ### Adding server code
 

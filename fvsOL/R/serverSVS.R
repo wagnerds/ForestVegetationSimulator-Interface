@@ -67,8 +67,7 @@ cat ("Visualize input$SVSRunList1=",input$SVSRunList1,"\n")
       choices = mkSVSchoices(input$SVSRunList1)
       updateSelectInput(session=session, inputId="SVSImgList1", choices=choices, 
                         selected = 0)
-      session$sendCustomMessage(type="jsCode",
-        list(code= "$('#SVSstaIm1').hide();$('#SVSdynIm1').hide();"))
+      setVisible(session, c("SVSstaIm1","SVSdynIm1"), FALSE)
       output$SVSqImg1Pers = renderUI(NULL)
       output$SVSqImg1Top  = renderUI(NULL)
       output$SVSqImg1Side = renderUI(NULL)
@@ -84,8 +83,7 @@ cat ("Visualize input$SVSRunList2=",input$SVSRunList2,"\n")
       choices = mkSVSchoices(input$SVSRunList2)
       updateSelectInput(session=session, inputId="SVSImgList2", choices=choices, 
                         selected = 0)
-      session$sendCustomMessage(type="jsCode",
-        list(code= "$('#SVSstaIm2').hide();$('#SVSdynIm2').hide();"))
+      setVisible(session, c("SVSstaIm2","SVSdynIm2"), FALSE)
       output$SVSqImg2Pers = renderUI(NULL)
       output$SVSqImg2Top  = renderUI(NULL)
       output$SVSqImg2Side = renderUI(NULL)
@@ -341,10 +339,8 @@ cat("Residual length of svs=",length(svs),"\n")
       session$sendCustomMessage(type="makeTopSideImages", 
               c(id,paste0(id,"Pers"),paste0(id,"Top"),paste0(id,"Side"))) 
       progress$close()
-      if (id=="SVSImg1") session$sendCustomMessage(type="jsCode",
-           list(code= "$('#SVSstaIm1').show();$('#SVSdynIm1').show();")) else
-                         session$sendCustomMessage(type="jsCode",
-           list(code= "$('#SVSstaIm2').show();$('#SVSdynIm2').show();"))
+      if (id=="SVSImg1") setVisible(session, c("SVSstaIm1","SVSdynIm1"), TRUE) else
+                         setVisible(session, c("SVSstaIm2","SVSdynIm2"), TRUE)
     }
     session$onFlushed(callBack, once = TRUE)
   }

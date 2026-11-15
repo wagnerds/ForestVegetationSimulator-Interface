@@ -127,10 +127,7 @@ cat ("tabDescSel2, tab=",tab,"\n")
       cat ("Upload inventory data\n")
       output$step1ActionMsg <- NULL
       output$step2ActionMsg <- NULL
-      session$sendCustomMessage(type="jsCode",
-                                list(code= "$('#installNewDB').prop('disabled',true)"))
-      session$sendCustomMessage(type="jsCode",
-                                list(code= "$('#addNewDB').prop('disabled',true)"))
+      setDisabled(session, c("installNewDB","addNewDB"), TRUE)
     }
   })
   
@@ -209,10 +206,7 @@ cat ("tabDescSel2, tab=",tab,"\n")
     if (! (fext %in% c("accdb","mdb","db","sqlite","xlsx","zip"))) {
       output$step1ActionMsg  = renderText("Uploaded file is not suitable database types described in Step 1.")
       unlink(input$uploadNewDB$datapath)
-      session$sendCustomMessage(type="jsCode",
-                                list(code= "$('#installTrainDB').prop('disabled',false)"))
-      session$sendCustomMessage(type="jsCode",
-                                list(code= "$('#installEmptyDB').prop('disabled',false)"))
+      setDisabled(session, c("installTrainDB","installEmptyDB"), FALSE)
       return()
     }
     fdir = dirname(input$uploadNewDB$datapath)
@@ -228,18 +222,12 @@ cat ("tabDescSel2, tab=",tab,"\n")
         output$step1ActionMsg = renderText(".zip contains more than one file.")
         lapply (dir(dirname(input$uploadNewDB$datapath),full.names=TRUE),unlink)
         progress$close()
-        session$sendCustomMessage(type="jsCode",
-                                  list(code= "$('#installTrainDB').prop('disabled',false)"))
-        session$sendCustomMessage(type="jsCode",
-                                  list(code= "$('#installEmptyDB').prop('disabled',false)"))
+        setDisabled(session, c("installTrainDB","installEmptyDB"), FALSE)
         return()
       } else if (length(fname) == 0) {
         output$actionMsg = renderText(".zip was empty.")
         progress$close()
-        session$sendCustomMessage(type="jsCode",
-                                  list(code= "$('#installTrainDB').prop('disabled',false)"))
-        session$sendCustomMessage(type="jsCode",
-                                  list(code= "$('#installEmptyDB').prop('disabled',false)"))
+        setDisabled(session, c("installTrainDB","installEmptyDB"), FALSE)
         return()
       } 
       fext = tolower(tools::file_ext(fname))
@@ -248,10 +236,7 @@ cat ("tabDescSel2, tab=",tab,"\n")
         output$step1ActionMsg = renderText(".zip did not contain one of the suitable file types described in Step 1.")
         lapply (dir(dirname(input$uploadNewDB$datapath),full.names=TRUE),unlink)
         progress$close()
-        session$sendCustomMessage(type="jsCode",
-                                  list(code= "$('#installTrainDB').prop('disabled',false)"))
-        session$sendCustomMessage(type="jsCode",
-                                  list(code= "$('#installEmptyDB').prop('disabled',false)"))
+        setDisabled(session, c("installTrainDB","installEmptyDB"), FALSE)
         return()
       }
     } else fname = basename(input$uploadNewDB$datapath)
@@ -297,10 +282,7 @@ cat ("fext=",fext," fname=",fname," fdir=",fdir,"\n")
                                            target='_blank' rel='noopener noreferrer'>
                                            Chapter 3 of the Database Users Guide</a></h4>")
           session$sendCustomMessage(type = "resetFileInputHandler","uploadNewDB")
-          session$sendCustomMessage(type="jsCode",
-                                  list(code= "$('#installTrainDB').prop('disabled',false)"))
-          session$sendCustomMessage(type="jsCode",
-                                  list(code= "$('#installEmptyDB').prop('disabled',false)"))
+          setDisabled(session, c("installTrainDB","installEmptyDB"), FALSE)
           return()
         }
       
@@ -358,10 +340,7 @@ cat ("fext=",fext," fname=",fname," fdir=",fdir,"\n")
                                            target='_blank' rel='noopener noreferrer'>
                                            Chapter 3 of the Database Users Guide</a></h4>")
         session$sendCustomMessage(type = "resetFileInputHandler","uploadNewDB")
-        session$sendCustomMessage(type="jsCode",
-                                  list(code= "$('#installTrainDB').prop('disabled',false)"))
-        session$sendCustomMessage(type="jsCode",
-                                  list(code= "$('#installEmptyDB').prop('disabled',false)"))
+        setDisabled(session, c("installTrainDB","installEmptyDB"), FALSE)
         return()
       }
       normNames = c("FVS_GroupAddFilesAndKeywords","FVS_PlotInit",                
@@ -412,10 +391,7 @@ cat ("fext=",fext," fname=",fname," fdir=",fdir,"\n")
                                            target='_blank' rel='noopener noreferrer'>
                                            Chapter 3 of the Database Users Guide</a></h4>"))
           session$sendCustomMessage(type = "resetFileInputHandler","uploadNewDB")
-          session$sendCustomMessage(type="jsCode",
-                                  list(code= "$('#installTrainDB').prop('disabled',false)"))
-          session$sendCustomMessage(type="jsCode",
-                                  list(code= "$('#installEmptyDB').prop('disabled',false)"))
+          setDisabled(session, c("installTrainDB","installEmptyDB"), FALSE)
           return()
       }
 
@@ -463,8 +439,7 @@ cat ("fext=",fext," fname=",fname," fdir=",fdir,"\n")
                                            target='_blank' rel='noopener noreferrer'>
                                            Chapter 3 of the Database Users Guide</a></h4>")
         session$sendCustomMessage(type = "resetFileInputHandler","uploadNewDB")
-        session$sendCustomMessage(type="jsCode", list(code= "$('#installTrainDB').prop('disabled',false)"))
-        session$sendCustomMessage(type="jsCode", list(code= "$('#installEmptyDB').prop('disabled',false)"))
+        setDisabled(session, c("installTrainDB","installEmptyDB"), FALSE)
         return()
       }
     }
@@ -716,14 +691,11 @@ cat ("calling fixFVSKeywords\n")
       file.copy(from="FVS_Data.db",to=dbGlb$newFVSData,overwrite=TRUE)
       session$sendCustomMessage(type = "resetFileInput","uploadNewDB")
       if (allowInstall) {
-        session$sendCustomMessage(type="jsCode",
-                                  list(code= "$('#installNewDB').prop('disabled',false)"))
+        setDisabled(session, "installNewDB", FALSE)
       } else {
-        session$sendCustomMessage(type="jsCode",
-                                  list(code= "$('#installNewDB').prop('disabled',true)"))
+        setDisabled(session, "installNewDB", TRUE)
       }
-      session$sendCustomMessage(type="jsCode",
-                                list(code= "$('#addNewDB').prop('disabled',false)"))
+      setDisabled(session, "addNewDB", FALSE)
     }
     # session$sendCustomMessage(type="jsCode",
     #                           list(code= "$('#installTrainDB').prop('disabled',false)"))
