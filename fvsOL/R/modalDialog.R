@@ -21,3 +21,7 @@ modalTriggerButton <- function(inputId, target, label)
     class = "btn action-button btn-primary", 'data-toggle' = "modal", 
     'data-target' = target, label)
 }
+# A button that closes the modal dialog it is in (e.g. "Cancel", "No").
+dismissButton <- function(label = "Cancel")
+  tags$button(type = "button", class = "btn btn-primary",
+    'data-dismiss' = "modal", label)

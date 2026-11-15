@@ -71,20 +71,20 @@ tabManageProject <- function()
             list(modalTriggerButton("PrjDelete", "#PrjDeleteDlg", "Delete project"),
                  modalDialog(id = "PrjDeleteDlg", footer = list(
                  modalTriggerButton("PrjDeleteDlgBtn", "#PrjDeleteDlg", "Yes"),
-                 tags$button(type = "button", class = "btn btn-primary",'data-dismiss' = "modal", "No")))),
+                 dismissButton("No")))),
             tags$style(type="text/css","#delPrjActionMsg{color:darkred;}"),
             h4("Delete outputs in current project"),
             list(
               modalTriggerButton("deleteAllOutputs", "#deleteAllOutputsDlg", "Delete ALL outputs in current project"),
               modalDialog(id="deleteAllOutputsDlg", footer=list(
                 modalTriggerButton("deleteAllOutputsDlgBtn", "#deleteAllOutputsDlg", "Yes"),
-                tags$button(type = "button", class = "btn btn-primary", 'data-dismiss' = "modal", "Cancel")))
+                dismissButton("Cancel")))
             ),                      
             h4("Delete runs in current project"),
             list(
               modalTriggerButton("deleteAllRuns", "#deleteAllRunsDlg", "Delete ALL runs and related outputs in current project"),
               modalDialog(id="deleteAllRunsDlg", footer=list(modalTriggerButton("deleteAllRunsDlgBtn", "#deleteAllRunsDlg", "Yes"),
-                                                             tags$button(type = "button", class = "btn btn-primary", 'data-dismiss' = "modal", "Cancel")))
+                                                             dismissButton("Cancel")))
              )
             )
           )
@@ -137,8 +137,7 @@ tabImportInputData <- function()
                       modalDialog(id="clearTableDlg", footer=list(
                         modalTriggerButton("clearTableDlgBtn", "#clearTableDlg", 
                           "Yes"),
-                        tags$button(type = "button", class = "btn btn-primary", 
-                          'data-dismiss' = "modal", "Cancel")))
+                        dismissButton("Cancel")))
                     ),
                     actionButton("commitChanges","Commit edits or new rows")),
                   column(width=9,offset=0,
@@ -244,16 +243,14 @@ tabImportRuns <- function()
                 "Import FVS_Data.db"),
               modalDialog(id = "impFVS_DataDlg", footer = list(
                 modalTriggerButton("impFVS_DataDlgBtn", "#impFVS_DataDlg", 
-                  "Yes"), tags$button(type = "button", class = "btn btn-primary", 
-                  'data-dismiss' = "modal", "Cancel"))))),
+                  "Yes"), dismissButton("Cancel"))))),
                   column(width = 7,offset = 0, uiOutput("impFVS_DataMsg"))),                    
             fixedRow(column(width = 5, offset = 0,list(
               modalTriggerButton("impSpatialData", "#impSpatialDataDlg", 
                 "Import the Spatial Data"),
               modalDialog(id = "impSpatialDataDlg", footer = list(
                 modalTriggerButton("impSpatialDataDlgBtn", "#impSpatialDataDlg", 
-                  "Yes"), tags$button(type = "button", class = "btn btn-primary", 
-                  'data-dismiss' = "modal", "Cancel"))))),
+                  "Yes"), dismissButton("Cancel"))))),
                   column(width = 7,offset = 0,uiOutput("impSpatialDataMsg")))                    
             )
           )

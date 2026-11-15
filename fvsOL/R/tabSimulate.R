@@ -16,8 +16,7 @@ tabSimulate <- function()
           modalTriggerButton("deleteRun", "#deleteRunDlg", "Delete"),
           modalDialog(id = "deleteRunDlg", footer = list(
             modalTriggerButton("deleteRunDlgBtn", "#deleteRunDlg", "Yes"),
-              tags$button(type = "button", class = "btn btn-primary",
-               'data-dismiss' = "modal", "Cancel")))),
+              dismissButton("Cancel")))),
           tags$style(type="text/css", "#title { width: 90%; }"),
           textInput("title", "Run title", ""),
           # all the select objects
